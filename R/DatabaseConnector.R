@@ -104,6 +104,8 @@ jdbcSingleton <- function(driverClass = "", classPath = "", identifier.quote = N
       assign(key, driver, envir = jdbcDrivers)
     }
   } else {
+    writeLines(driverClass)
+    writeLines(classPath)
     driver <- RJDBC::JDBC(driverClass, classPath, identifier.quote)
     assign(key, driver, envir = jdbcDrivers)
   }
@@ -432,6 +434,15 @@ connect <- function(connectionDetails,
     }
     if (!missing(schema) && !is.null(schema))
       RJDBC::dbSendUpdate(connection, paste("SET search_path TO ", schema))
+    attr(connection, "dbms") <- dbms
+    return(connection)
+  }
+  if (dbms == "snowflake") {
+    writeLines("Connecting using Snowflake driver")
+    pathToJar <- system.file("java", "snowflake-jdbc-3.2.1.jar", package = "DatabaseConnector")
+    driver <- jdbcSingleton("net.snowflake.client.jdbc.SnowflakeDriver", pathToJar, identifier.quote = "`")
+    connectionString <- "jdbc:snowflake://blah.snowflakecomputing.com?user=blah&password=blah&role=blah&db=OMOP_DEMO&schema=OMOP&warehouse=nowarehouse"
+    connection <- RJDBC::dbConnect(driver, connectionString)
     attr(connection, "dbms") <- dbms
     return(connection)
   }
