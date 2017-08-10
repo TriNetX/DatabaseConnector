@@ -15,6 +15,7 @@ Features
   - MySQL
   - Impala
   - Google BigQuery
+  - Snowflake
 - Statements for executing queries with 
   - Error reporting to file
   - Progress reporting

@@ -457,7 +457,6 @@ connect <- function(connectionDetails,
       if (!missing(extraSettings) && !is.null(extraSettings)) {
         connectionString <- paste(connectionString, extraSettings)
       }
-      writeLines(connectionString)
     }
     pathToJar <- system.file("java", "snowflake-jdbc-3.2.1.jar", package = "DatabaseConnector")
     driver <- jdbcSingleton("net.snowflake.client.jdbc.SnowflakeDriver", pathToJar, identifier.quote = "`")
