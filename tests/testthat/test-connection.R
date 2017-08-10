@@ -40,6 +40,18 @@ test_that("Open and close connection", {
   connection <- connect(details)
   expect_true(inherits(connection, "JDBCConnection"))
   expect_true(DBI::dbDisconnect(connection))
+  
+  # Snowflake
+  details <- createConnectionDetails(dbms = "snowflake",
+                                     user = Sys.getenv("CDM5_SNOWFLAKE_USER"),
+                                     password = URLdecode(Sys.getenv("CDM5_SNOWFLAKE_PASSWORD")),
+                                     server = Sys.getenv("CDM5_SNOWFLAKE_SERVER"),
+                                     schema = Sys.getenv("CDM5_SNOWFLAKE_CDM_SCHEMA"),
+                                     db = Sys.getenv("CDM5_SNOWFLAKE_CDM_DB"),
+                                     role = Sys.getenv("CDM5_SNOWFLAKE_CDM_ROLE"))
+  connection <- connect(details)
+  expect_true(inherits(connection, "JDBCConnection"))
+  expect_true(DBI::dbDisconnect(connection))  
 })
 
 test_that("Open and close connection using connection strings with embedded user and pw", {
