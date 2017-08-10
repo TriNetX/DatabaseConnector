@@ -76,7 +76,10 @@ createConnectionDetails <- function(dbms,
                                     extraSettings = NULL,
                                     oracleDriver = "thin",
                                     connectionString = NULL,
-                                    pathToDriver = NULL) {
+                                    pathToDriver = NULL,
+                                    role = NULL,
+                                    warehouse = NULL,
+                                    db = NULL) {
   # First: get default values:
   result <- list()
   for (name in names(formals(createConnectionDetails))) {
@@ -104,8 +107,6 @@ jdbcSingleton <- function(driverClass = "", classPath = "", identifier.quote = N
       assign(key, driver, envir = jdbcDrivers)
     }
   } else {
-    writeLines(driverClass)
-    writeLines(classPath)
     driver <- RJDBC::JDBC(driverClass, classPath, identifier.quote)
     assign(key, driver, envir = jdbcDrivers)
   }
@@ -182,7 +183,10 @@ connect <- function(connectionDetails,
                     extraSettings,
                     oracleDriver = "thin",
                     connectionString,
-                    pathToDriver) {
+                    pathToDriver,
+                    role = NULL,
+                    warehouse = NULL,
+                    db = NULL) {
   if (!missing(connectionDetails) && !is.null(connectionDetails)) {
     connection <- connect(dbms = connectionDetails$dbms,
                           user = connectionDetails$user,
@@ -194,7 +198,10 @@ connect <- function(connectionDetails,
                           extraSettings = connectionDetails$extraSettings,
                           oracleDriver = connectionDetails$oracleDriver,
                           connectionString = connectionDetails$connectionString,
-                          pathToDriver = connectionDetails$pathToDriver)
+                          pathToDriver = connectionDetails$pathToDriver,
+                          role = connectionDetails$role,
+                          warehouse = connectionDetails$warehouse,
+                          db = connectionDetails$db)
 
     return(connection)
   }
@@ -439,10 +446,22 @@ connect <- function(connectionDetails,
   }
   if (dbms == "snowflake") {
     writeLines("Connecting using Snowflake driver")
+    if (missing(connectionString) || is.null(connectionString)) {
+      if (missing(warehouse) || is.null(warehouse)) {
+        warehouse <- "nowarehouse"
+      }
+      if (missing(schema) || is.null(schema)) {
+        schema <- "noschema"
+      }
+      connectionString <- paste("jdbc:snowflake://", server, "?db=", db, "&schema=", schema, "&role=", role, "&warehouse=", warehouse, sep = "")
+      if (!missing(extraSettings) && !is.null(extraSettings)) {
+        connectionString <- paste(connectionString, extraSettings)
+      }
+      writeLines(connectionString)
+    }
     pathToJar <- system.file("java", "snowflake-jdbc-3.2.1.jar", package = "DatabaseConnector")
     driver <- jdbcSingleton("net.snowflake.client.jdbc.SnowflakeDriver", pathToJar, identifier.quote = "`")
-    connectionString <- "jdbc:snowflake://blah.snowflakecomputing.com?user=blah&password=blah&role=blah&db=OMOP_DEMO&schema=OMOP&warehouse=nowarehouse"
-    connection <- RJDBC::dbConnect(driver, connectionString)
+    connection <- RJDBC::dbConnect(driver, connectionString, user, password)
     attr(connection, "dbms") <- dbms
     return(connection)
   }
